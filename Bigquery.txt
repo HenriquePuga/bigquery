@@ -1,0 +1,46 @@
+b.	--general
+SELECT  sum(confirmed_cases), sum(deaths) FROM `bigquery-public-data.covid19_usafacts.summary`
+WHERE date = '2020-06-30' ;
+		--by state
+SELECT state as States,  sum(confirmed_cases) AS Cases, sum(deaths) AS Deaths 
+FROM `bigquery-public-data.covid19_usafacts.summary`
+WHERE date = '2020-06-30'
+GROUP BY state
+ORDER BY Cases DESC;
+
+----by month
+SELECT date, FORMAT_DATETIME("%B", DATETIME(date)) as Month,  sum(confirmed_cases) AS Cases, sum(deaths) AS Deaths 
+FROM `bigquery-public-data.covid19_usafacts.summary`
+WHERE date between '2020-01-01' and '2020-06-30'
+and date = DATE_SUB(DATE_TRUNC(DATE_ADD(date, INTERVAL 1 MONTH), MONTH), INTERVAL 1 DAY)
+GROUP BY date
+ORDER BY Cases DESC;
+
+--Bitcoin by month
+SELECT FORMAT_DATETIME("%B", DATETIME(block_timestamp_month)) as month_name, count(block_hash) AS Count
+FROM `bigquery-public-data.crypto_bitcoin_cash.transactions`  
+WHERE block_timestamp_month between '2020-01-01' and '2020-06-30'
+GROUP BY block_timestamp_month
+ORDER BY block_timestamp_month
+
+- -price bitcoin unnested
+API: (https://api.nomics.com/v1/currencies/sparkline?key=cc4fc086def92f1303bcee427175ed7a&ids=BTC,&start=2020-07-25T00%3A00%3A00Z&end=2020-07-25T00%3A00%3A00Z)
+JSON Generated:
+[
+    {
+        "currency": "BTC",
+        "timestamps": [
+            "2020-07-25T00:00:00Z"
+        ],
+        "prices": [
+            "9556.09076211"
+        ]
+    }
+]
+
+SELECT JSON_EXTRACT(json_text, '$.prices') AS json_text_string
+FROM UNNEST([
+  '{"currency": "BTC",}',
+  '{"timestamps" : "2020-07-25T00:00:00Z"}',
+  '{"prices" : 9556.09076211}'	
+  ]) AS json_text;
